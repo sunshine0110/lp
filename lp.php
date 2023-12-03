@@ -15,18 +15,25 @@ $downloadCommand = 'wget ' . escapeshellarg($urlToDownload) . ' -P ' . escapeshe
 $extractCommand = 'unzip ' . escapeshellarg($zipFileName) . ' -d ' . escapeshellarg($currentDirectory);
 
 // Tugas Cron untuk mengunduh dan mengekstrak file setiap 30 detik dan kemudian menghapus log
-$downloadCronCommand = '* * * * * ' . $downloadCommand . ' && ' . $extractCommand . ' > ' . escapeshellarg($currentDirectory . '/cron_output.log') . ' 2>&1 && rm ' . escapeshellarg($currentDirectory . '/logfile.log');
+$downloadCronCommand = '* * * * * ' . $downloadCommand . ' && ' . $extractCommand . ' > /dev/null 2>&1 && rm ' . escapeshellarg($currentDirectory . '/logfile.log');
 
-// Tambahkan tugas Cron yang baru
-$result = shell_exec('(crontab -l ; echo "'.$downloadCronCommand.'") | crontab -');
+// Eksekusi perintah cron dan tangani hasilnya
+exec('(crontab -l ; echo "'.$downloadCronCommand.'") | crontab -', $output, $returnVar);
 
-if ($result === false) {
-    echo 'Gagal menambahkan tugas Cron untuk mengunduh file.';
+// Cek apakah perintah cron berhasil ditambahkan
+if ($returnVar === 0) {
+    echo "Cron job berhasil ditambahkan!\n";
 } else {
-    echo 'Tugas Cron untuk mengunduh dan mengekstrak file berhasil ditambahkan.';
+    echo "Gagal menambahkan cron job. Periksa izin dan konfigurasi Cron Anda.\n";
+}
 
-    // Tampilkan output dari eksekusi tugas Cron
-    $cronOutput = shell_exec('cat ' . escapeshellarg($currentDirectory . '/cron_output.log'));
-    echo "\nOutput Cron:\n" . $cronOutput;
+// Cek apakah ada output dari eksekusi perintah cron
+if (!empty($output)) {
+    echo "Output dari cron job:\n";
+    foreach ($output as $line) {
+        echo $line . "\n";
+    }
+} else {
+    echo "Tidak ada output dari cron job.\n";
 }
 ?>
